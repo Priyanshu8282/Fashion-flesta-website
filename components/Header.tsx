@@ -40,9 +40,9 @@ export default function Header() {
             <Image
               src="/logo.png"
               alt="Fashion Flesta"
-              width={250}
-              height={80}
-              className="h-20 w-auto"
+              width={400}
+              height={200}
+              className="h-24 w-auto"
               priority
             />
           </Link>

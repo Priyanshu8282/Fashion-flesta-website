@@ -6,6 +6,9 @@ import { WishlistProvider } from "@/context/WishlistContext";
 export const metadata: Metadata = {
   title: "Fashion Flesta - Girls & Women Clothing",
   description: "Premium girls and women clothing e-commerce store",
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({

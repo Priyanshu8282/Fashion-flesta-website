@@ -1,7 +1,7 @@
 "use client";
 
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Pagination, Autoplay, EffectFade } from "swiper/modules";
+import { Pagination, Autoplay, EffectFade } from "swiper/modules";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -30,7 +30,7 @@ export default function HeroSlider() {
       title: "New Arrival",
       subtitle: "Spring Summer 2024",
       description: "Browse our latest collection that defines the vibe of the new season",
-      image: "/hero-banner.png",
+      image: "/hero-banner-1.png",
       primaryButtonText: "Shop the Collection",
       primaryButtonLink: "/new-arrivals",
       secondaryButtonText: "View Lookbook",
@@ -41,7 +41,7 @@ export default function HeroSlider() {
       title: "Trending Styles",
       subtitle: "Fashion Week 2024",
       description: "Discover the hottest trends straight from the runway",
-      image: "/hero-banner.png",
+      image: "/hero-banner-2.png",
       primaryButtonText: "Shop Trending",
       primaryButtonLink: "/trending",
       secondaryButtonText: "Explore More",
@@ -52,7 +52,7 @@ export default function HeroSlider() {
       title: "Exclusive Sale",
       subtitle: "Up to 50% Off",
       description: "Limited time offer on selected items - Don't miss out!",
-      image: "/hero-banner.png",
+      image: "/hero-banner-3.png",
       primaryButtonText: "Shop Sale",
       primaryButtonLink: "/categories",
       secondaryButtonText: "View All Deals",
@@ -63,10 +63,9 @@ export default function HeroSlider() {
   return (
     <div className="hero-slider">
       <Swiper
-        modules={[Navigation, Pagination, Autoplay, EffectFade]}
+        modules={[Pagination, Autoplay, EffectFade]}
         spaceBetween={0}
         slidesPerView={1}
-        navigation
         pagination={{ clickable: true }}
         autoplay={{
           delay: 5000,
@@ -120,25 +119,6 @@ export default function HeroSlider() {
       </Swiper>
 
       <style jsx global>{`
-        .hero-slider .swiper-button-next,
-        .hero-slider .swiper-button-prev {
-          color: white;
-          background: rgba(236, 72, 153, 0.8);
-          width: 50px;
-          height: 50px;
-          border-radius: 50%;
-        }
-
-        .hero-slider .swiper-button-next:hover,
-        .hero-slider .swiper-button-prev:hover {
-          background: rgba(236, 72, 153, 1);
-        }
-
-        .hero-slider .swiper-button-next:after,
-        .hero-slider .swiper-button-prev:after {
-          font-size: 20px;
-        }
-
         .hero-slider .swiper-pagination-bullet {
           background: white;
           opacity: 0.5;

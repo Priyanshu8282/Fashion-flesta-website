@@ -1,10 +1,12 @@
 import Link from "next/link";
 
 export default function Footer() {
+  const currentYear = new Date().getFullYear();
+
   return (
     <footer className="bg-rose-50 mt-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* About Section */}
           <div>
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Fashion Flesta</h3>
@@ -13,66 +15,65 @@ export default function Footer() {
             </p>
           </div>
 
-          {/* Quick Links */}
+          {/* Shop Links */}
           <div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Quick Links</h3>
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Shop</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/about" className="text-gray-600 hover:text-rose-500 text-sm">
-                  About Us
+                <Link href="/new-arrivals" className="text-gray-600 hover:text-rose-500 text-sm">
+                  New Arrivals
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="text-gray-600 hover:text-rose-500 text-sm">
-                  Contact
+                <Link href="/trending" className="text-gray-600 hover:text-rose-500 text-sm">
+                  Trending
                 </Link>
               </li>
               <li>
-                <Link href="/faq" className="text-gray-600 hover:text-rose-500 text-sm">
-                  FAQs
+                <Link href="/categories" className="text-gray-600 hover:text-rose-500 text-sm">
+                  All Categories
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Customer Service */}
+          {/* Categories */}
           <div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Customer Service</h3>
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Categories</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/shipping" className="text-gray-600 hover:text-rose-500 text-sm">
-                  Shipping Info
+                <Link href="/categories/dresses" className="text-gray-600 hover:text-rose-500 text-sm">
+                  Dresses
                 </Link>
               </li>
               <li>
-                <Link href="/returns" className="text-gray-600 hover:text-rose-500 text-sm">
-                  Returns & Exchange
+                <Link href="/categories/tops" className="text-gray-600 hover:text-rose-500 text-sm">
+                  Designer Tops
                 </Link>
               </li>
               <li>
-                <Link href="/privacy" className="text-gray-600 hover:text-rose-500 text-sm">
-                  Privacy Policy
+                <Link href="/categories/ethnic" className="text-gray-600 hover:text-rose-500 text-sm">
+                  Ethnic Wear
+                </Link>
+              </li>
+              <li>
+                <Link href="/categories/western" className="text-gray-600 hover:text-rose-500 text-sm">
+                  Western Wear
+                </Link>
+              </li>
+              <li>
+                <Link href="/categories/accessories" className="text-gray-600 hover:text-rose-500 text-sm">
+                  Accessories
                 </Link>
               </li>
             </ul>
-          </div>
-
-          {/* Contact Info */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Get in Touch</h3>
-            <p className="text-gray-600 text-sm mb-2">
-              Email: support@fashionflesta.com
-            </p>
-            <p className="text-gray-600 text-sm">
-              Phone: +91 98765 43210
-            </p>
           </div>
         </div>
 
         {/* Copyright */}
         <div className="mt-8 pt-8 border-t border-rose-200 text-center">
           <p className="text-gray-600 text-sm">
-            © 2024 Fashion Flesta. All rights reserved.
+            © {currentYear} Fashion Flesta. All rights reserved.
           </p>
         </div>
       </div>

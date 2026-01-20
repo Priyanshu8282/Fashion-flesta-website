@@ -83,6 +83,15 @@ export default function CategorySlider({ categories }: CategorySliderProps) {
         .category-slider .swiper-button-prev:after {
           font-size: 24px;
         }
+        
+        /* Hide navigation arrows and pagination on mobile */
+        @media (max-width: 767px) {
+          .category-slider .swiper-button-next,
+          .category-slider .swiper-button-prev,
+          .category-slider .swiper-pagination {
+            display: none !important;
+          }
+        }
       `}</style>
     </div>
   );

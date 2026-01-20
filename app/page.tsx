@@ -241,7 +241,18 @@ export default function Home() {
         </section>
 
         {/* Promotional Banner */}
-        <section className="py-20 bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 relative overflow-hidden">
+        <section className="py-20 relative overflow-hidden">
+          {/* Background Image */}
+          <Image
+            src="/seasonal-sale-bg.png"
+            alt="Seasonal Sale"
+            fill
+            className="object-cover"
+          />
+          {/* Lighter Gradient Overlay - to show more background */}
+          <div className="absolute inset-0 bg-gradient-to-r from-rose-500/60 via-pink-500/50 to-rose-400/60" />
+          
+          {/* Decorative Elements */}
           <div className="absolute inset-0 opacity-10">
             <div className="absolute top-10 left-20 text-9xl">🎁</div>
             <div className="absolute bottom-10 right-20 text-9xl">✨</div>
