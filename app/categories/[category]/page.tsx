@@ -271,12 +271,12 @@ const categoryProducts: Record<string, any[]> = {
   ],
 };
 
-export default function CategoryPage({
+export default async function CategoryPage({
   params,
 }: {
-  params: { category: string };
+  params: Promise<{ category: string }>;
 }) {
-  const categoryKey = params.category;
+  const { category: categoryKey } = await params;
   const categoryInfo = categories[categoryKey as keyof typeof categories];
 
   if (!categoryInfo) {
