@@ -208,9 +208,20 @@ export default function AllCategoriesPage() {
       <Header />
 
       <main>
-        {/* Page Header */}
-        <section className="bg-gradient-to-r from-rose-100 to-pink-100 py-12 md:py-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Page Header with Banner Image */}
+        <section className="relative bg-gradient-to-r from-rose-100 to-pink-100 py-12 md:py-16 overflow-hidden">
+          {/* Background Banner Image */}
+          <Image
+            src="/categories-banner.png"
+            alt="Shop by Category"
+            fill
+            className="object-cover"
+            priority
+          />
+          {/* Overlay for readability */}
+          <div className="absolute inset-0 bg-gradient-to-r from-rose-100/80 to-pink-100/80" />
+          
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
                 Shop by Category
@@ -260,7 +271,7 @@ export default function AllCategoriesPage() {
               </div>
 
               {/* Products Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                 {category.products.map((product) => (
                   <ProductCard key={product.id} {...product} />
                 ))}

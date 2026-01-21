@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
+import Image from "next/image";
 import { SlidersHorizontal, TrendingUp, Flame } from "lucide-react";
 
 export default function TrendingPage() {
@@ -109,9 +110,19 @@ export default function TrendingPage() {
       <Header />
 
       <main>
-        {/* Page Header/Banner */}
-        <section className="relative bg-gradient-to-r from-orange-500 via-rose-500 to-pink-500 py-16 md:py-20">
-          <div className="absolute inset-0 bg-black opacity-10"></div>
+        {/* Page Header/Banner with Background Image */}
+        <section className="relative bg-gradient-to-r from-orange-500 via-rose-500 to-pink-500 py-16 md:py-20 overflow-hidden">
+          {/* Background Banner Image */}
+          <Image
+            src="/trending-banner.png"
+            alt="Trending Now"
+            fill
+            className="object-cover"
+            priority
+          />
+          {/* Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-orange-500/70 via-rose-500/70 to-pink-500/70" />
+          
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <div className="inline-flex items-center gap-2 mb-4">
               <Flame className="h-6 w-6 text-white animate-pulse" />
@@ -174,7 +185,7 @@ export default function TrendingPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               {trendingProducts.map((product) => (
                 <ProductCard key={product.id} {...product} />
               ))}

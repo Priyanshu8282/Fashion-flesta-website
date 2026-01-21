@@ -114,8 +114,114 @@ export default function ProductDetailPage({
           <span className="text-gray-900">{product.name}</span>
         </nav>
 
-        {/* Product Main Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
+        {/* Main Content with Sidebar */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-16">
+          {/* Filter Sidebar - Hidden on mobile */}
+          <aside className="hidden lg:block lg:col-span-1 space-y-6">
+            {/* Search */}
+            <div className="bg-white rounded-lg border border-gray-200 p-4">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Search</h3>
+              <input
+                type="text"
+                placeholder="Search products..."
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
+              />
+            </div>
+
+            {/* Category Filter */}
+            <div className="bg-white rounded-lg border border-gray-200 p-4">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Category</h3>
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 text-rose-500 border-gray-300 rounded focus:ring-rose-500"
+                  />
+                  <span className="text-gray-700">Dresses</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 text-rose-500 border-gray-300 rounded focus:ring-rose-500"
+                  />
+                  <span className="text-gray-700">Designer Tops</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 text-rose-500 border-gray-300 rounded focus:ring-rose-500"
+                    defaultChecked
+                  />
+                  <span className="text-gray-700">Ethnic Wear</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 text-rose-500 border-gray-300 rounded focus:ring-rose-500"
+                  />
+                  <span className="text-gray-700">Western Wear</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 text-rose-500 border-gray-300 rounded focus:ring-rose-500"
+                  />
+                  <span className="text-gray-700">Accessories</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 text-rose-500 border-gray-300 rounded focus:ring-rose-500"
+                  />
+                  <span className="text-gray-700">Footwear</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 text-rose-500 border-gray-300 rounded focus:ring-rose-500"
+                  />
+                  <span className="text-gray-700">Other Items</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Price Range Filter */}
+            <div className="bg-white rounded-lg border border-gray-200 p-4">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Price Range</h3>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="number"
+                    placeholder="0"
+                    defaultValue="0"
+                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                  />
+                  <input
+                    type="number"
+                    placeholder="1500000"
+                    defaultValue="1500000"
+                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                  />
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="1500000"
+                  defaultValue="750000"
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-rose-500"
+                />
+                <div className="flex justify-between text-xs text-gray-600">
+                  <span>₹0</span>
+                  <span>₹15,00,000</span>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          {/* Product Content - Takes 3 columns on large screens */}
+          <div className="lg:col-span-3">
+            {/* Product Main Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Image Gallery */}
           <div className="space-y-4">
             {/* Main Image with Zoom */}
@@ -358,10 +464,12 @@ export default function ProductDetailPage({
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
             You May Also Like
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {relatedProducts.map((product) => (
               <ProductCard key={product.id} {...product} />
             ))}
+          </div>
+        </div>
           </div>
         </div>
       </main>

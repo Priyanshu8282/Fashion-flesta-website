@@ -26,8 +26,8 @@ export default function CategorySlider({ categories }: CategorySliderProps) {
     <div className="category-slider">
       <Swiper
         modules={[Navigation, Pagination, Autoplay]}
-        spaceBetween={30}
-        slidesPerView={1}
+        spaceBetween={20}
+        slidesPerView={2}
         navigation
         pagination={{ clickable: true }}
         autoplay={{

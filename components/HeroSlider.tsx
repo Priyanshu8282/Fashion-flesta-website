@@ -28,7 +28,7 @@ export default function HeroSlider() {
     {
       id: "1",
       title: "New Arrival",
-      subtitle: "Spring Summer 2024",
+      subtitle: "Spring Summer 2026",
       description: "Browse our latest collection that defines the vibe of the new season",
       image: "/hero-banner-1.png",
       primaryButtonText: "Shop the Collection",
@@ -39,7 +39,7 @@ export default function HeroSlider() {
     {
       id: "2",
       title: "Trending Styles",
-      subtitle: "Fashion Week 2024",
+      subtitle: "Fashion Week 2026",
       description: "Discover the hottest trends straight from the runway",
       image: "/hero-banner-2.png",
       primaryButtonText: "Shop Trending",
@@ -97,16 +97,16 @@ export default function HeroSlider() {
                   <p className="text-lg md:text-xl mb-8 text-gray-200 animate-fade-in">
                     {slide.description}
                   </p>
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up-delay">
+                  <div className="flex flex-row gap-2 sm:gap-4 justify-center animate-fade-in-up-delay">
                     <Link
                       href={slide.primaryButtonLink}
-                      className="bg-rose-500 hover:bg-rose-600 text-white px-8 py-3 rounded-lg font-semibold transition-all duration-300 inline-flex items-center justify-center transform hover:scale-105"
+                      className="bg-rose-500 hover:bg-rose-600 text-white px-4 sm:px-8 py-3 rounded-lg text-sm sm:text-base font-semibold transition-all duration-300 inline-flex items-center justify-center transform hover:scale-105"
                     >
                       {slide.primaryButtonText}
                     </Link>
                     <Link
                       href={slide.secondaryButtonLink}
-                      className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur-sm text-white px-8 py-3 rounded-lg font-semibold transition-all duration-300 inline-flex items-center justify-center border border-white border-opacity-50 transform hover:scale-105"
+                      className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur-sm text-white px-4 sm:px-8 py-3 rounded-lg text-sm sm:text-base font-semibold transition-all duration-300 inline-flex items-center justify-center border border-white border-opacity-50 transform hover:scale-105"
                     >
                       {slide.secondaryButtonText}
                     </Link>

@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
+import Image from "next/image";
 import { SlidersHorizontal, Sparkles } from "lucide-react";
 
 export default function NewArrivalsPage() {
@@ -109,9 +110,19 @@ export default function NewArrivalsPage() {
       <Header />
 
       <main>
-        {/* Page Header/Banner */}
-        <section className="relative bg-gradient-to-r from-rose-500 to-pink-500 py-16 md:py-20">
-          <div className="absolute inset-0 bg-black opacity-10"></div>
+        {/* Page Header/Banner with Background Image */}
+        <section className="relative bg-gradient-to-r from-rose-500 to-pink-500 py-16 md:py-20 overflow-hidden">
+          {/* Background Banner Image */}
+          <Image
+            src="/new-arrivals-banner.png"
+            alt="New Arrivals"
+            fill
+            className="object-cover"
+            priority
+          />
+          {/* Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-rose-500/70 to-pink-500/70" />
+          
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <div className="inline-flex items-center gap-2 mb-4">
               <Sparkles className="h-6 w-6 text-white" />
@@ -161,7 +172,7 @@ export default function NewArrivalsPage() {
         {/* Products Grid */}
         <section className="py-12 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               {newArrivals.map((product) => (
                 <ProductCard key={product.id} {...product} />
               ))}
