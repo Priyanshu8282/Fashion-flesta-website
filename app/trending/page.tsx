@@ -1,109 +1,75 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
 import Image from "next/image";
 import { SlidersHorizontal, TrendingUp, Flame } from "lucide-react";
+import productService, { Product } from "@/services/product.service";
+import { getImageUrl } from "@/services/index";
 
 export default function TrendingPage() {
-  // Trending products
-  const trendingProducts = [
-    {
-      id: "4",
-      name: "Embroidered Organza Top",
-      price: 1499,
-      originalPrice: 2499,
-      image: "/product-top.png",
-      badge: "TRENDING",
-    },
-    {
-      id: "1",
-      name: "Vintage Silk Floral Dress",
-      price: 1299,
-      originalPrice: 2499,
-      image: "/product-dress1.png",
-      badge: "HOT",
-    },
-    {
-      id: "8",
-      name: "Evening Black Jumpsuit",
-      price: 1899,
-      originalPrice: 2999,
-      image: "/product-jumpsuit.png",
-      badge: "TRENDING",
-    },
-    {
-      id: "11",
-      name: "Floral Maxi Dress",
-      price: 1799,
-      originalPrice: 2999,
-      image: "/product-maxi-dress.png",
-      badge: "HOT",
-    },
-    {
-      id: "7",
-      name: "Linen Tailored Blazer",
-      price: 2299,
-      originalPrice: 3999,
-      image: "/product-blazer.png",
-      badge: "TRENDING",
-    },
-    {
-      id: "14",
-      name: "Elegant Wool Coat",
-      price: 3499,
-      originalPrice: 5999,
-      image: "/product-coat.png",
-      badge: "SALE",
-    },
-    {
-      id: "2",
-      name: "Cashmere Knit Sweater",
-      price: 899,
-      originalPrice: 1599,
-      image: "/product-sweater.png",
-      badge: "TRENDING",
-    },
-    {
-      id: "12",
-      name: "Silk Bow Blouse",
-      price: 1099,
-      originalPrice: 1899,
-      image: "/product-blouse.png",
-      badge: "HOT",
-    },
-    {
-      id: "10",
-      name: "High-Waisted Denim Jeans",
-      price: 1599,
-      originalPrice: 2499,
-      image: "/product-jeans.png",
-      badge: "TRENDING",
-    },
-    {
-      id: "5",
-      name: "Traditional Pink Kurti",
-      price: 799,
-      originalPrice: 1499,
-      image: "/product-kurti.png",
-      badge: "SALE",
-    },
-    {
-      id: "3",
-      name: "Elegant Linen Trousers",
-      price: 1199,
-      originalPrice: 1999,
-      image: "/product-trousers.png",
-      badge: "TRENDING",
-    },
-    {
-      id: "6",
-      name: "Pleated Midi Skirt",
-      price: 999,
-      originalPrice: 1699,
-      image: "/product-skirt.png",
-      badge: "HOT",
-    },
-  ];
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [sortBy, setSortBy] = useState("popular");
+
+  useEffect(() => {
+    const fetchTrendingProducts = async () => {
+      try {
+        // Fetch featured products as "trending"
+        const featuredProducts = await productService.getFeaturedProducts(20);
+        
+        // Map products to card format with "TRENDING" badge
+        const mappedProducts = featuredProducts.map((product: Product) => ({
+          id: product._id,
+          slug: product.slug,
+          name: product.name,
+          price: product.price,
+          image: getImageUrl(product.coverImage),
+          badge: product.stock < 10 ? "HOT" : "TRENDING",
+        }));
+
+        setProducts(mappedProducts);
+      } catch (error) {
+        console.error("Failed to load trending products:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTrendingProducts();
+  }, []);
+
+  // Handle sorting
+  const sortProducts = (productsToSort: any[]) => {
+    const sorted = [...productsToSort];
+    switch (sortBy) {
+      case "price-low":
+        return sorted.sort((a, b) => a.price - b.price);
+      case "price-high":
+        return sorted.sort((a, b) => b.price - a.price);
+      case "popular":
+      default:
+        return sorted; // Keep as is from API
+    }
+  };
+
+  const sortedProducts = sortProducts(products);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white">
+        <Header />
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="text-center">
+            <p className="text-gray-600 text-lg">Loading trending products...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -137,7 +103,7 @@ export default function TrendingPage() {
               Shop the most popular styles everyone is loving right now
             </p>
             <p className="mt-4 text-sm text-white opacity-80">
-              {trendingProducts.length} Trending Products
+              {products.length} Trending Products
             </p>
           </div>
         </section>
@@ -157,12 +123,14 @@ export default function TrendingPage() {
                 <span className="text-sm text-gray-600 hidden sm:block">
                   Sort by:
                 </span>
-                <select className="flex-1 sm:flex-none px-4 py-2 border border-gray-300 rounded-lg hover:border-rose-500 transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500 appearance-none bg-white cursor-pointer">
-                  <option>Most Popular</option>
-                  <option>Price: Low to High</option>
-                  <option>Price: High to Low</option>
-                  <option>Best Rating</option>
-                  <option>Newest First</option>
+                <select 
+                  className="flex-1 sm:flex-none px-4 py-2 border border-gray-300 rounded-lg hover:border-rose-500 transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500 appearance-none bg-white cursor-pointer"
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                >
+                  <option value="popular">Most Popular</option>
+                  <option value="price-low">Price: Low to High</option>
+                  <option value="price-high">Price: High to Low</option>
                 </select>
               </div>
             </div>
@@ -185,11 +153,19 @@ export default function TrendingPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              {trendingProducts.map((product) => (
-                <ProductCard key={product.id} {...product} />
-              ))}
-            </div>
+            {sortedProducts.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                {sortedProducts.map((product) => (
+                  <ProductCard key={product.id} {...product} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-16">
+                <p className="text-gray-500 text-lg">
+                  No trending products at the moment.
+                </p>
+              </div>
+            )}
           </div>
         </section>
 

@@ -10,6 +10,16 @@ const nextConfig: NextConfig = {
         // Disable type checking during production builds
         ignoreBuildErrors: true,
     },
+    images: {
+        remotePatterns: [
+            {
+                protocol: 'http',
+                hostname: 'localhost',
+                port: '5001',
+                pathname: '/uploads/**',
+            },
+        ],
+    },
 };
 
 export default nextConfig;

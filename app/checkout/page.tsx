@@ -1,8 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import cartService, { Cart } from "@/services/cart.service";
+import addressService, { Address, AddressFormData } from "@/services/address.service";
+import orderService from "@/services/order.service";
 import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -15,50 +18,79 @@ import {
   Wallet,
   ArrowLeft,
 } from "lucide-react";
-
-interface Address {
-  id: string;
-  name: string;
-  phone: string;
-  addressLine: string;
-  city: string;
-  state: string;
-  pincode: string;
-  isDefault: boolean;
-}
+import { getImageUrl } from "@/services/index";
+import toast from "react-hot-toast";
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { cart, cartTotal } = useCart();
-
-  const [addresses, setAddresses] = useState<Address[]>([
-    {
-      id: "1",
-      name: "John Doe",
-      phone: "+91 9876543210",
-      addressLine: "123 Main Street, Apartment 4B",
-      city: "Mumbai",
-      state: "Maharashtra",
-      pincode: "400001",
-      isDefault: true,
-    },
-  ]);
-
-  const [selectedAddress, setSelectedAddress] = useState<string>("1");
+  const { refreshCartCount } = useCart();
+  const [cart, setCart] = useState<Cart | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [selectedAddress, setSelectedAddress] = useState<string>("");
   const [paymentMethod, setPaymentMethod] = useState<"upi" | "cod">("cod");
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [editingAddress, setEditingAddress] = useState<string | null>(null);
-
-  const [addressForm, setAddressForm] = useState({
-    name: "",
-    phone: "",
-    addressLine: "",
+  const [addressForm, setAddressForm] = useState<AddressFormData>({
+    fullName: "",
+    phoneNumber: "",
+    addressLine1: "",
+    addressLine2: "",
     city: "",
     state: "",
     pincode: "",
+    country: "India",
+    isDefault: false
   });
 
-  if (cart.length === 0) {
+  useEffect(() => {
+    fetchCart();
+    fetchAddresses();
+  }, []);
+
+  const fetchCart = async () => {
+    try {
+      const cartData = await cartService.getCart();
+      setCart(cartData);
+    } catch (error) {
+      console.error("Failed to fetch cart:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchAddresses = async () => {
+    try {
+      const addressList = await addressService.getAddresses();
+      setAddresses(addressList);
+      // Set default address as selected
+      const defaultAddr = addressList.find(addr => addr.isDefault);
+      if (defaultAddr) {
+        setSelectedAddress(defaultAddr._id);
+      } else if (addressList.length > 0) {
+        setSelectedAddress(addressList[0]._id);
+      }
+    } catch (error) {
+      console.error("Failed to fetch addresses:", error);
+      toast.error("Failed to load addresses");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white">
+        <Header />
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="text-center">
+            <p className="text-gray-600">Loading checkout...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!cart || cart.items.length === 0) {
     return (
       <div className="min-h-screen bg-white">
         <Header />
@@ -81,78 +113,205 @@ export default function CheckoutPage() {
     );
   }
 
-  const handleAddAddress = () => {
-    if (!addressForm.name || !addressForm.phone || !addressForm.addressLine || !addressForm.city || !addressForm.state || !addressForm.pincode) {
-      alert("Please fill all fields");
+  const cartTotal = cart?.items.reduce(
+    (total, item) => total + item.product.price * item.quantity,
+    0
+  ) || 0;
+
+  const handleAddAddress = async () => {
+    if (!addressForm.fullName || !addressForm.phoneNumber || !addressForm.addressLine1 || !addressForm.city || !addressForm.state || !addressForm.pincode) {
+      toast.error("Please fill all required fields");
       return;
     }
 
-    if (editingAddress) {
-      // Edit existing address
-      setAddresses(
-        addresses.map((addr) =>
-          addr.id === editingAddress
-            ? { ...addr, ...addressForm }
-            : addr
-        )
-      );
-      setEditingAddress(null);
-    } else {
-      // Add new address
-      const newAddress: Address = {
-        id: Date.now().toString(),
-        ...addressForm,
-        isDefault: addresses.length === 0,
-      };
-      setAddresses([...addresses, newAddress]);
-      if (addresses.length === 0) {
-        setSelectedAddress(newAddress.id);
+    try {
+      if (editingAddress) {
+        // Edit existing address
+        const { message } = await addressService.updateAddress(editingAddress, addressForm);
+        toast.success(message);
+        await fetchAddresses();
+        setEditingAddress(null);
+      } else {
+        // Add new address
+        const { message } = await addressService.createAddress(addressForm);
+        toast.success(message);
+        await fetchAddresses();
       }
-    }
 
-    setAddressForm({
-      name: "",
-      phone: "",
-      addressLine: "",
-      city: "",
-      state: "",
-      pincode: "",
-    });
-    setShowAddressForm(false);
+      setAddressForm({
+        fullName: "",
+        phoneNumber: "",
+        addressLine1: "",
+        addressLine2: "",
+        city: "",
+        state: "",
+        pincode: "",
+        country: "India",
+        isDefault: false
+      });
+      setShowAddressForm(false);
+    } catch (error) {
+      console.error("Failed to save address:", error);
+      toast.error("Failed to save address");
+    }
   };
 
   const handleEditAddress = (address: Address) => {
     setAddressForm({
-      name: address.name,
-      phone: address.phone,
-      addressLine: address.addressLine,
+      fullName: address.fullName,
+      phoneNumber: address.phoneNumber,
+      addressLine1: address.addressLine1,
+      addressLine2: address.addressLine2 || "",
       city: address.city,
       state: address.state,
       pincode: address.pincode,
+      country: address.country,
+      isDefault: address.isDefault
     });
-    setEditingAddress(address.id);
+    setEditingAddress(address._id);
     setShowAddressForm(true);
   };
 
-  const handleDeleteAddress = (id: string) => {
+  const handleDeleteAddress = async (id: string) => {
     if (window.confirm("Are you sure you want to delete this address?")) {
-      setAddresses(addresses.filter((addr) => addr.id !== id));
-      if (selectedAddress === id && addresses.length > 1) {
-        setSelectedAddress(addresses.find((addr) => addr.id !== id)?.id || "");
+      try {
+        const { message } = await addressService.deleteAddress(id);
+        toast.success(message);
+        await fetchAddresses();
+        if (selectedAddress === id) {
+          setSelectedAddress("");
+        }
+      } catch (error) {
+        console.error("Failed to delete address:", error);
+        toast.error("Failed to delete address");
       }
     }
   };
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     if (!selectedAddress) {
-      alert("Please select a delivery address");
+      toast.error("Please select a delivery address", {
+        duration: 4000,
+        style: {
+          background: '#fff',
+          color: '#1f2937',
+          padding: '16px',
+          borderRadius: '12px',
+          border: '2px solid #f43f5e',
+          boxShadow: '0 10px 25px rgba(244, 63, 94, 0.15)',
+          fontSize: '15px',
+          fontWeight: '600',
+        },
+        iconTheme: {
+          primary: '#f43f5e',
+          secondary: '#fff',
+        },
+      });
       return;
     }
 
-    alert(
-      `Order placed successfully!\nPayment Method: ${paymentMethod === "upi" ? "UPI" : "Cash on Delivery"}\nTotal: ₹${cartTotal}`
-    );
-    router.push("/");
+    // Get the selected address details
+    const address = addresses.find(addr => addr._id === selectedAddress);
+    if (!address) {
+      toast.error("Invalid address selected");
+      return;
+    }
+
+    try {
+      // Show loading toast
+      const loadingToast = toast.loading("Placing your order...");
+
+      // Prepare order items
+      const orderItems = cart?.items.map(item => ({
+        product: item.product._id,
+        quantity: item.quantity,
+        size: item.size
+      })) || [];
+
+      // Prepare shipping address
+      const shippingAddress = {
+        name: address.fullName,
+        phone: address.phoneNumber,
+        street: address.addressLine1,
+        city: address.city,
+        state: address.state,
+        pincode: address.pincode,
+        country: address.country || 'India'
+      };
+
+      // Prepare order data
+      const orderData = {
+        items: orderItems,
+        shippingAddress,
+        paymentMethod: paymentMethod.toUpperCase() as 'UPI' | 'COD',
+        upiTransactionId: paymentMethod === 'upi' ? '' : undefined
+      };
+
+      // Place order
+      const { order, message } = await orderService.placeOrder(orderData);
+
+      // Dismiss loading toast
+      toast.dismiss(loadingToast);
+
+      // Clear cart after successful order (cart is already cleared by backend)
+      await fetchCart();
+      
+      // Update header cart count immediately
+      await refreshCartCount();
+
+      // Show success message
+      toast.success(
+        `${message}\nOrder Number: ${order.orderNumber}\nPayment Method: ${paymentMethod === "upi" ? "UPI" : "Cash on Delivery"}\nTotal: ₹${order.totalAmount}`,
+        {
+          duration: 5000,
+          style: {
+            background: '#fff',
+            color: '#1f2937',
+            padding: '16px',
+            borderRadius: '12px',
+            border: '2px solid #10b981',
+            boxShadow: '0 10px 25px rgba(16, 185, 129, 0.15)',
+            fontSize: '15px',
+            fontWeight: '600',
+          },
+          iconTheme: {
+            primary: '#10b981',
+            secondary: '#fff',
+          },
+        }
+      );
+
+      // Redirect to home or order confirmation page
+      setTimeout(() => {
+        router.push("/");
+      }, 2000);
+    } catch (error: any) {
+      console.error("Failed to place order:", error);
+      
+      // Extract error message
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.error || 
+                          error.message || 
+                          "Failed to place order. Please try again.";
+
+      toast.error(errorMessage, {
+        duration: 4000,
+        style: {
+          background: '#fff',
+          color: '#1f2937',
+          padding: '16px',
+          borderRadius: '12px',
+          border: '2px solid #f43f5e',
+          boxShadow: '0 10px 25px rgba(244, 63, 94, 0.15)',
+          fontSize: '15px',
+          fontWeight: '600',
+        },
+        iconTheme: {
+          primary: '#f43f5e',
+          secondary: '#fff',
+        },
+      });
+    }
   };
 
   return (
@@ -185,12 +344,15 @@ export default function CheckoutPage() {
                     setShowAddressForm(!showAddressForm);
                     setEditingAddress(null);
                     setAddressForm({
-                      name: "",
-                      phone: "",
-                      addressLine: "",
+                      fullName: "",
+                      phoneNumber: "",
+                      addressLine1: "",
+                      addressLine2: "",
                       city: "",
                       state: "",
                       pincode: "",
+                      country: "India",
+                      isDefault: false
                     });
                   }}
                   className="flex items-center gap-2 text-rose-500 hover:text-rose-600 font-medium"
@@ -210,29 +372,29 @@ export default function CheckoutPage() {
                     <input
                       type="text"
                       placeholder="Full Name"
-                      value={addressForm.name}
+                      value={addressForm.fullName}
                       onChange={(e) =>
-                        setAddressForm({ ...addressForm, name: e.target.value })
+                        setAddressForm({ ...addressForm, fullName: e.target.value })
                       }
                       className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
                     />
                     <input
                       type="tel"
                       placeholder="Phone Number"
-                      value={addressForm.phone}
+                      value={addressForm.phoneNumber}
                       onChange={(e) =>
-                        setAddressForm({ ...addressForm, phone: e.target.value })
+                        setAddressForm({ ...addressForm, phoneNumber: e.target.value })
                       }
                       className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
                     />
                     <input
                       type="text"
-                      placeholder="Address Line"
-                      value={addressForm.addressLine}
+                      placeholder="Address Line 1"
+                      value={addressForm.addressLine1}
                       onChange={(e) =>
                         setAddressForm({
                           ...addressForm,
-                          addressLine: e.target.value,
+                          addressLine1: e.target.value,
                         })
                       }
                       className="md:col-span-2 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
@@ -292,25 +454,25 @@ export default function CheckoutPage() {
               <div className="space-y-3">
                 {addresses.map((address) => (
                   <div
-                    key={address.id}
+                    key={address._id}
                     className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                      selectedAddress === address.id
+                      selectedAddress === address._id
                         ? "border-rose-500 bg-rose-50"
                         : "border-gray-200 hover:border-gray-300"
                     }`}
-                    onClick={() => setSelectedAddress(address.id)}
+                    onClick={() => setSelectedAddress(address._id)}
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           <input
                             type="radio"
-                            checked={selectedAddress === address.id}
-                            onChange={() => setSelectedAddress(address.id)}
+                            checked={selectedAddress === address._id}
+                            onChange={() => setSelectedAddress(address._id)}
                             className="text-rose-500"
                           />
                           <h3 className="font-semibold text-gray-900">
-                            {address.name}
+                            {address.fullName}
                           </h3>
                           {address.isDefault && (
                             <span className="text-xs bg-rose-500 text-white px-2 py-1 rounded">
@@ -319,13 +481,13 @@ export default function CheckoutPage() {
                           )}
                         </div>
                         <p className="text-gray-600 text-sm ml-6">
-                          {address.addressLine}
+                          {address.addressLine1}
                         </p>
                         <p className="text-gray-600 text-sm ml-6">
                           {address.city}, {address.state} - {address.pincode}
                         </p>
                         <p className="text-gray-600 text-sm ml-6">
-                          Phone: {address.phone}
+                          Phone: {address.phoneNumber}
                         </p>
                       </div>
                       <div className="flex gap-2">
@@ -341,7 +503,7 @@ export default function CheckoutPage() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleDeleteAddress(address.id);
+                            handleDeleteAddress(address._id);
                           }}
                           className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
                         >
@@ -427,23 +589,23 @@ export default function CheckoutPage() {
 
               {/* Cart Items */}
               <div className="space-y-3 mb-6 max-h-64 overflow-y-auto">
-                {cart.map((item) => (
-                  <div key={`${item.id}-${item.size}`} className="flex gap-3">
+                {cart.items.map((item) => (
+                  <div key={`${item.product._id}-${item.size}`} className="flex gap-3">
                     <div className="relative w-16 h-20 flex-shrink-0 rounded overflow-hidden bg-gray-100">
                       <Image
-                        src={item.image}
-                        alt={item.name}
+                        src={getImageUrl(item.product.images[0])}
+                        alt={item.product.name}
                         fill
                         className="object-cover"
                       />
                     </div>
                     <div className="flex-1">
                       <h3 className="text-sm font-medium text-gray-900 line-clamp-2">
-                        {item.name}
+                        {item.product.name}
                       </h3>
                       <p className="text-xs text-gray-600">Qty: {item.quantity}</p>
                       <p className="text-sm font-semibold text-gray-900">
-                        ₹{item.price * item.quantity}
+                        ₹{item.product.price * item.quantity}
                       </p>
                     </div>
                   </div>

@@ -1,57 +1,87 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
-
-export interface WishlistItem {
-  id: string;
-  name: string;
-  price: number;
-  originalPrice?: number;
-  image: string;
-}
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import wishlistService, { Wishlist } from "@/services/wishlist.service";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 interface WishlistContextType {
-  wishlist: WishlistItem[];
-  addToWishlist: (item: WishlistItem) => void;
-  removeFromWishlist: (id: string) => void;
-  isInWishlist: (id: string) => boolean;
-  clearWishlist: () => void;
+  wishlist: Wishlist | null;
+  addToWishlist: (productId: string) => Promise<void>;
+  removeFromWishlist: (productId: string) => Promise<void>;
+  isInWishlist: (productId: string) => boolean;
+  refreshWishlist: () => Promise<void>;
   wishlistCount: number;
 }
 
 const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
 
 export function WishlistProvider({ children }: { children: ReactNode }) {
-  const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
+  const [wishlist, setWishlist] = useState<Wishlist | null>(null);
+  const router = useRouter();
 
-  const addToWishlist = (item: WishlistItem) => {
-    setWishlist((prevWishlist) => {
-      // Check if item already exists
-      const exists = prevWishlist.find((wishlistItem) => wishlistItem.id === item.id);
-      
-      if (exists) {
-        // Item already in wishlist, don't add again
-        return prevWishlist;
-      } else {
-        // Add new item
-        return [...prevWishlist, item];
+  const fetchWishlist = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setWishlist(null);
+        return;
       }
-    });
+      const data = await wishlistService.getWishlist();
+      setWishlist(data);
+    } catch (error) {
+      console.error("Failed to fetch wishlist:", error);
+      setWishlist(null);
+    }
   };
 
-  const removeFromWishlist = (id: string) => {
-    setWishlist((prevWishlist) => prevWishlist.filter((item) => item.id !== id));
+  useEffect(() => {
+    fetchWishlist();
+  }, []);
+
+  const addToWishlist = async (productId: string) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("Please login to add items to wishlist");
+      router.push("/login");
+      return;
+    }
+
+    try {
+      const result = await wishlistService.addToWishlist(productId);
+      setWishlist(result.wishlist);
+      toast.success(result.message);
+    } catch (error: any) {
+      console.error("Failed to add to wishlist:", error);
+      if (error?.response?.status === 401) {
+        toast.error("Please login to continue");
+        router.push("/login");
+      } else {
+        toast.error("Failed to add to wishlist");
+      }
+    }
   };
 
-  const isInWishlist = (id: string) => {
-    return wishlist.some((item) => item.id === id);
+  const removeFromWishlist = async (productId: string) => {
+    try {
+      const result = await wishlistService.removeFromWishlist(productId);
+      setWishlist(result.wishlist);
+      toast.success(result.message);
+    } catch (error) {
+      console.error("Failed to remove from wishlist:", error);
+      toast.error("Failed to remove from wishlist");
+    }
   };
 
-  const clearWishlist = () => {
-    setWishlist([]);
+  const isInWishlist = (productId: string): boolean => {
+    return wishlistService.isInWishlist(productId, wishlist);
   };
 
-  const wishlistCount = wishlist.length;
+  const refreshWishlist = async () => {
+    await fetchWishlist();
+  };
+
+  const wishlistCount = wishlist?.products.length || 0;
 
   return (
     <WishlistContext.Provider
@@ -60,7 +90,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
         addToWishlist,
         removeFromWishlist,
         isInWishlist,
-        clearWishlist,
+        refreshWishlist,
         wishlistCount,
       }}
     >

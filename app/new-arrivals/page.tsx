@@ -1,109 +1,75 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
 import Image from "next/image";
 import { SlidersHorizontal, Sparkles } from "lucide-react";
+import productService, { Product } from "@/services/product.service";
+import { getImageUrl } from "@/services/index";
 
 export default function NewArrivalsPage() {
-  // New arrival products
-  const newArrivals = [
-    {
-      id: "9",
-      name: "Cozy Beige Cardigan",
-      price: 1299,
-      originalPrice: 2199,
-      image: "/product-cardigan.png",
-      badge: "NEW",
-    },
-    {
-      id: "10",
-      name: "High-Waisted Denim Jeans",
-      price: 1599,
-      originalPrice: 2499,
-      image: "/product-jeans.png",
-      badge: "NEW",
-    },
-    {
-      id: "11",
-      name: "Floral Maxi Dress",
-      price: 1799,
-      originalPrice: 2999,
-      image: "/product-maxi-dress.png",
-      badge: "HOT",
-    },
-    {
-      id: "12",
-      name: "Silk Bow Blouse",
-      price: 1099,
-      originalPrice: 1899,
-      image: "/product-blouse.png",
-      badge: "NEW",
-    },
-    {
-      id: "13",
-      name: "Mint Green Palazzo Pants",
-      price: 899,
-      originalPrice: 1599,
-      image: "/product-palazzo.png",
-      badge: "NEW",
-    },
-    {
-      id: "14",
-      name: "Elegant Wool Coat",
-      price: 3499,
-      originalPrice: 5999,
-      image: "/product-coat.png",
-      badge: "NEW",
-    },
-    {
-      id: "2",
-      name: "Cashmere Knit Sweater",
-      price: 899,
-      originalPrice: 1599,
-      image: "/product-sweater.png",
-      badge: "NEW",
-    },
-    {
-      id: "8",
-      name: "Evening Black Jumpsuit",
-      price: 1899,
-      originalPrice: 2999,
-      image: "/product-jumpsuit.png",
-      badge: "NEW",
-    },
-    {
-      id: "5",
-      name: "Traditional Pink Kurti",
-      price: 799,
-      originalPrice: 1499,
-      image: "/product-kurti.png",
-      badge: "NEW",
-    },
-    {
-      id: "6",
-      name: "Pleated Midi Skirt",
-      price: 999,
-      originalPrice: 1699,
-      image: "/product-skirt.png",
-      badge: "NEW",
-    },
-    {
-      id: "7",
-      name: "Linen Tailored Blazer",
-      price: 2299,
-      originalPrice: 3999,
-      image: "/product-blazer.png",
-      badge: "NEW",
-    },
-    {
-      id: "1",
-      name: "Vintage Silk Floral Dress",
-      price: 1299,
-      originalPrice: 2499,
-      image: "/product-dress1.png",
-      badge: "NEW",
-    },
-  ];
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [sortBy, setSortBy] = useState("newest");
+
+  useEffect(() => {
+    const fetchNewArrivals = async () => {
+      try {
+        // Fetch all products (backend returns sorted by createdAt desc)
+        const allProducts = await productService.getAllProducts();
+        
+        // Map products to card format with "NEW" badge
+        const mappedProducts = allProducts.map((product: Product) => ({
+          id: product._id,
+          slug: product.slug,
+          name: product.name,
+          price: product.price,
+          image: getImageUrl(product.coverImage),
+          badge: "NEW",
+        }));
+
+        setProducts(mappedProducts);
+      } catch (error) {
+        console.error("Failed to load new arrivals:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNewArrivals();
+  }, []);
+
+  // Handle sorting
+  const sortProducts = (productsToSort: any[]) => {
+    const sorted = [...productsToSort];
+    switch (sortBy) {
+      case "price-low":
+        return sorted.sort((a, b) => a.price - b.price);
+      case "price-high":
+        return sorted.sort((a, b) => b.price - a.price);
+      case "newest":
+      default:
+        return sorted; // Already sorted by createdAt desc
+    }
+  };
+
+  const sortedProducts = sortProducts(products);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white">
+        <Header />
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="text-center">
+            <p className="text-gray-600 text-lg">Loading new arrivals...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -137,7 +103,7 @@ export default function NewArrivalsPage() {
               Discover our latest collection of trendy and stylish pieces
             </p>
             <p className="mt-4 text-sm text-white opacity-80">
-              {newArrivals.length} New Products
+              {products.length} New Products
             </p>
           </div>
         </section>
@@ -157,12 +123,14 @@ export default function NewArrivalsPage() {
                 <span className="text-sm text-gray-600 hidden sm:block">
                   Sort by:
                 </span>
-                <select className="flex-1 sm:flex-none px-4 py-2 border border-gray-300 rounded-lg hover:border-rose-500 transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500 appearance-none bg-white cursor-pointer">
-                  <option>Newest First</option>
-                  <option>Price: Low to High</option>
-                  <option>Price: High to Low</option>
-                  <option>Best Selling</option>
-                  <option>Featured</option>
+                <select 
+                  className="flex-1 sm:flex-none px-4 py-2 border border-gray-300 rounded-lg hover:border-rose-500 transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500 appearance-none bg-white cursor-pointer"
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                >
+                  <option value="newest">Newest First</option>
+                  <option value="price-low">Price: Low to High</option>
+                  <option value="price-high">Price: High to Low</option>
                 </select>
               </div>
             </div>
@@ -172,11 +140,19 @@ export default function NewArrivalsPage() {
         {/* Products Grid */}
         <section className="py-12 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              {newArrivals.map((product) => (
-                <ProductCard key={product.id} {...product} />
-              ))}
-            </div>
+            {sortedProducts.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                {sortedProducts.map((product) => (
+                  <ProductCard key={product.id} {...product} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-16">
+                <p className="text-gray-500 text-lg">
+                  No new arrivals at the moment. Check back soon!
+                </p>
+              </div>
+            )}
           </div>
         </section>
 

@@ -4,24 +4,99 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import Image from "next/image";
 import Link from "next/link";
+import { useState, useEffect } from "react";
+import categoryService, { Category } from "@/services/category.service";
+import { getImageUrl } from "@/services/index";
 
 // Import Swiper styles
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 
-interface Category {
+interface CategoryProps {
   id: string;
   name: string;
   image: string;
   link: string;
 }
 
-interface CategorySliderProps {
-  categories: Category[];
-}
+export default function CategorySlider() {
+  const [categories, setCategories] = useState<CategoryProps[]>([]);
+  const [loading, setLoading] = useState(true);
 
-export default function CategorySlider({ categories }: CategorySliderProps) {
+  // Fallback categories (manual data)
+  const fallbackCategories: CategoryProps[] = [
+    {
+      id: "1",
+      name: "Dresses",
+      image: "/category-dresses.png",
+      link: "/categories/dresses",
+    },
+    {
+      id: "2",
+      name: "Designer Tops",
+      image: "/category-tops.png",
+      link: "/categories/tops",
+    },
+    {
+      id: "3",
+      name: "Ethnic Wear",
+      image: "/category-ethnic.png",
+      link: "/categories/ethnic",
+    },
+    {
+      id: "4",
+      name: "Western Wear",
+      image: "/category-western.png",
+      link: "/categories/western",
+    },
+    {
+      id: "5",
+      name: "Accessories",
+      image: "/category-accessories.png",
+      link: "/categories/accessories",
+    },
+  ];
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const apiCategories = await categoryService.getAllCategories();
+        
+        // Map API categories to CategoryProps format
+        if (apiCategories && apiCategories.length > 0) {
+          const mappedCategories: CategoryProps[] = apiCategories.map((category: Category) => ({
+            id: category._id,
+            name: category.name,
+            image: getImageUrl(category.image), // Convert API image path to full URL
+            link: `/categories/${category.name.toLowerCase().replace(/\s+/g, '-')}`,
+          }));
+          setCategories(mappedCategories);
+        } else {
+          // Use fallback if no categories from API
+          setCategories(fallbackCategories);
+        }
+      } catch (error) {
+        console.error("Failed to load categories from API, using fallback:", error);
+        // Use fallback categories on error
+        setCategories(fallbackCategories);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="w-full h-48 flex items-center justify-center">
+        <div className="text-gray-600">Loading categories...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="category-slider">
       <Swiper

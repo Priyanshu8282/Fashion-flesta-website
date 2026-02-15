@@ -4,6 +4,9 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination, Autoplay, EffectFade } from "swiper/modules";
 import Link from "next/link";
 import Image from "next/image";
+import { useState, useEffect } from "react";
+import bannerService, { Banner } from "@/services/banner.service";
+import { getImageUrl } from "@/services/index";
 
 // Import Swiper styles
 import "swiper/css";
@@ -24,7 +27,11 @@ interface HeroSlide {
 }
 
 export default function HeroSlider() {
-  const slides: HeroSlide[] = [
+  const [slides, setSlides] = useState<HeroSlide[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fallback slides (manual images)
+  const fallbackSlides: HeroSlide[] = [
     {
       id: "1",
       title: "New Arrival",
@@ -59,6 +66,50 @@ export default function HeroSlider() {
       secondaryButtonLink: "/new-arrivals",
     },
   ];
+
+  useEffect(() => {
+    const fetchBanners = async () => {
+      try {
+        const banners = await bannerService.getAllBanners();
+        
+        // Map API banners to HeroSlide format
+        if (banners && banners.length > 0) {
+          const mappedSlides: HeroSlide[] = banners.map((banner: Banner) => ({
+            id: banner._id,
+            title: banner.title,
+            subtitle: banner.title, // Using title as subtitle (can be customized)
+            description: banner.description || "",
+            image: getImageUrl(banner.image), // Convert API image path to full URL
+            primaryButtonText: "Shop Now",
+            primaryButtonLink: banner.link || "/categories",
+            secondaryButtonText: "Explore More",
+            secondaryButtonLink: "/categories",
+          }));
+          setSlides(mappedSlides);
+        } else {
+          // Use fallback if no banners from API
+          setSlides(fallbackSlides);
+        }
+      } catch (error) {
+        console.error("Failed to load banners from API, using fallback:", error);
+        // Use fallback slides on error
+        setSlides(fallbackSlides);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBanners();
+  }, []);
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="w-full h-[500px] md:h-[600px] bg-gradient-to-r from-gray-900 to-gray-800 flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="hero-slider">

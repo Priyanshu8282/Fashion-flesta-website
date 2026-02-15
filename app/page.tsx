@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
@@ -6,169 +9,101 @@ import HeroSlider from "@/components/HeroSlider";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Tag, TrendingUp } from "lucide-react";
+import productService, { Product } from "@/services/product.service";
+import { getImageUrl } from "@/services/index";
+
+interface ProductCardProps {
+  id: string;
+  slug?: string;
+  name: string;
+  price: number;
+  originalPrice?: number;
+  image: string;
+  badge?: string;
+}
 
 export default function Home() {
-  // Categories data - 5 categories
-  const categories = [
-    {
-      id: "1",
-      name: "Dresses",
-      image: "/category-dresses.png",
-      link: "/categories/dresses",
-    },
-    {
-      id: "2",
-      name: "Designer Tops",
-      image: "/category-tops.png",
-      link: "/categories/tops",
-    },
-    {
-      id: "3",
-      name: "Ethnic Wear",
-      image: "/category-ethnic.png",
-      link: "/categories/ethnic",
-    },
-    {
-      id: "4",
-      name: "Western Wear",
-      image: "/category-western.png",
-      link: "/categories/western",
-    },
-    {
-      id: "5",
-      name: "Accessories",
-      image: "/category-accessories.png",
-      link: "/categories/accessories",
-    },
+  const [featuredProducts, setFeaturedProducts] = useState<ProductCardProps[]>([]);
+  const [latestArrivals, setLatestArrivals] = useState<ProductCardProps[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fallback featured products
+  const fallbackFeatured: ProductCardProps[] = [
+    { id: "1", name: "Vintage Silk Floral Dress", price: 1299, originalPrice: 2499, image: "/product-dress1.png", badge: "SALE" },
+    { id: "2", name: "Cashmere Knit Sweater", price: 899, originalPrice: 1599, image: "/product-sweater.png", badge: "NEW" },
+    { id: "3", name: "Elegant Linen Trousers", price: 1199, originalPrice: 1999, image: "/product-trousers.png" },
+    { id: "4", name: "Embroidered Organza Top", price: 1499, originalPrice: 2499, image: "/product-top.png", badge: "TRENDING" },
+    { id: "5", name: "Traditional Pink Kurti", price: 799, originalPrice: 1499, image: "/product-kurti.png", badge: "SALE" },
+    { id: "6", name: "Pleated Midi Skirt", price: 999, originalPrice: 1699, image: "/product-skirt.png" },
+    { id: "7", name: "Linen Tailored Blazer", price: 2299, originalPrice: 3999, image: "/product-blazer.png" },
+    { id: "8", name: "Evening Black Jumpsuit", price: 1899, originalPrice: 2999, image: "/product-jumpsuit.png", badge: "NEW" },
   ];
 
-  // Featured Collection - 8 products
-  const featuredProducts = [
-    {
-      id: "1",
-      name: "Vintage Silk Floral Dress",
-      price: 1299,
-      originalPrice: 2499,
-      image: "/product-dress1.png",
-      badge: "SALE",
-    },
-    {
-      id: "2",
-      name: "Cashmere Knit Sweater",
-      price: 899,
-      originalPrice: 1599,
-      image: "/product-sweater.png",
-      badge: "NEW",
-    },
-    {
-      id: "3",
-      name: "Elegant Linen Trousers",
-      price: 1199,
-      originalPrice: 1999,
-      image: "/product-trousers.png",
-    },
-    {
-      id: "4",
-      name: "Embroidered Organza Top",
-      price: 1499,
-      originalPrice: 2499,
-      image: "/product-top.png",
-      badge: "TRENDING",
-    },
-    {
-      id: "5",
-      name: "Traditional Pink Kurti",
-      price: 799,
-      originalPrice: 1499,
-      image: "/product-kurti.png",
-      badge: "SALE",
-    },
-    {
-      id: "6",
-      name: "Pleated Midi Skirt",
-      price: 999,
-      originalPrice: 1699,
-      image: "/product-skirt.png",
-    },
-    {
-      id: "7",
-      name: "Linen Tailored Blazer",
-      price: 2299,
-      originalPrice: 3999,
-      image: "/product-blazer.png",
-    },
-    {
-      id: "8",
-      name: "Evening Black Jumpsuit",
-      price: 1899,
-      originalPrice: 2999,
-      image: "/product-jumpsuit.png",
-      badge: "NEW",
-    },
+  // Fallback latest arrivals
+  const fallbackLatest: ProductCardProps[] = [
+    { id: "9", name: "Cozy Beige Cardigan", price: 1299, originalPrice: 2199, image: "/product-cardigan.png", badge: "NEW" },
+    { id: "10", name: "High-Waisted Denim Jeans", price: 1599, originalPrice: 2499, image: "/product-jeans.png" },
+    { id: "11", name: "Floral Maxi Dress", price: 1799, originalPrice: 2999, image: "/product-maxi-dress.png", badge: "HOT" },
+    { id: "12", name: "Silk Bow Blouse", price: 1099, originalPrice: 1899, image: "/product-blouse.png" },
+    { id: "13", name: "Mint Green Palazzo Pants", price: 899, originalPrice: 1599, image: "/product-palazzo.png" },
+    { id: "14", name: "Elegant Wool Coat", price: 3499, originalPrice: 5999, image: "/product-coat.png", badge: "SALE" },
+    { id: "15", name: "Pink Cashmere Sweater", price: 899, originalPrice: 1599, image: "/product-sweater.png" },
+    { id: "16", name: "Designer Tailored Trousers", price: 1199, originalPrice: 1999, image: "/product-trousers.png" },
   ];
 
-  // Latest Arrivals - 8 products
-  const latestArrivals = [
-    {
-      id: "9",
-      name: "Cozy Beige Cardigan",
-      price: 1299,
-      originalPrice: 2199,
-      image: "/product-cardigan.png",
-      badge: "NEW",
-    },
-    {
-      id: "10",
-      name: "High-Waisted Denim Jeans",
-      price: 1599,
-      originalPrice: 2499,
-      image: "/product-jeans.png",
-    },
-    {
-      id: "11",
-      name: "Floral Maxi Dress",
-      price: 1799,
-      originalPrice: 2999,
-      image: "/product-maxi-dress.png",
-      badge: "HOT",
-    },
-    {
-      id: "12",
-      name: "Silk Bow Blouse",
-      price: 1099,
-      originalPrice: 1899,
-      image: "/product-blouse.png",
-    },
-    {
-      id: "13",
-      name: "Mint Green Palazzo Pants",
-      price: 899,
-      originalPrice: 1599,
-      image: "/product-palazzo.png",
-    },
-    {
-      id: "14",
-      name: "Elegant Wool Coat",
-      price: 3499,
-      originalPrice: 5999,
-      image: "/product-coat.png",
-      badge: "SALE",
-    },
-    {
-      id: "15",
-      name: "Pink Cashmere Sweater",
-      price: 899,
-      originalPrice: 1599,
-      image: "/product-sweater.png",
-    },
-    {
-      id: "16",
-      name: "Designer Tailored Trousers",
-      price: 1199,
-      originalPrice: 1999,
-      image: "/product-trousers.png",
-    },
-  ];
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        // Fetch featured products
+        const featured = await productService.getFeaturedProducts(8);
+        
+        // Fetch all products and sort by createdAt for latest
+        const allProducts = await productService.getAllProducts();
+        const latest = allProducts
+          .filter(p => !p.isFeatured) // Exclude featured products
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          .slice(0, 8);
+
+        // Map featured products
+        if (featured && featured.length > 0) {
+          const mappedFeatured = featured.map((product: Product) => ({
+            id: product._id,
+            slug: product.slug,
+            name: product.name,
+            price: product.price,
+            image: getImageUrl(product.coverImage),
+            badge: product.stock < 15 ? "LIMITED" : undefined
+          }));
+          setFeaturedProducts(mappedFeatured);
+        } else {
+          setFeaturedProducts(fallbackFeatured);
+        }
+
+        // Map latest products
+        if (latest && latest.length > 0) {
+          const mappedLatest = latest.map((product: Product) => ({
+            id: product._id,
+            slug: product.slug,
+            name: product.name,
+            price: product.price,
+            image: getImageUrl(product.coverImage),
+            badge: "NEW"
+          }));
+          setLatestArrivals(mappedLatest);
+        } else {
+          setLatestArrivals(fallbackLatest);
+        }
+      } catch (error) {
+        console.error("Failed to load products from API, using fallback:", error);
+        setFeaturedProducts(fallbackFeatured);
+        setLatestArrivals(fallbackLatest);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   return (
     <div className="min-h-screen bg-white">
@@ -198,7 +133,7 @@ export default function Home() {
               </Link>
             </div>
 
-            <CategorySlider categories={categories} />
+            <CategorySlider />
 
             <div className="mt-8 text-center md:hidden">
               <Link
@@ -223,11 +158,17 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              {featuredProducts.map((product) => (
-                <ProductCard key={product.id} {...product} />
-              ))}
-            </div>
+            {loading ? (
+              <div className="text-center py-20">
+                <p className="text-gray-600">Loading products...</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                {featuredProducts.map((product) => (
+                  <ProductCard key={product.id} {...product} />
+                ))}
+              </div>
+            )}
 
             <div className="mt-10 text-center">
               <Link
@@ -325,11 +266,17 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              {latestArrivals.map((product) => (
-                <ProductCard key={product.id} {...product} />
-              ))}
-            </div>
+            {loading ? (
+              <div className="text-center py-20">
+                <p className="text-gray-600">Loading products...</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                {latestArrivals.map((product) => (
+                  <ProductCard key={product.id} {...product} />
+                ))}
+              </div>
+            )}
 
             <div className="mt-10 text-center">
               <Link
