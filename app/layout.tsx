@@ -9,7 +9,13 @@ export const metadata: Metadata = {
   title: "Fashion Flesta - Girls & Women Clothing",
   description: "Premium girls and women clothing e-commerce store",
   icons: {
-    icon: '/favicon.ico',
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/icon.png', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-icon.png', type: 'image/png' },
+    ],
   },
 };
 
