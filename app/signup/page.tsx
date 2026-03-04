@@ -4,11 +4,14 @@ import { useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff, Mail, Lock, User, Phone, ArrowRight, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import authService from "@/services/auth.service";
 
 export default function SignupPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -18,18 +21,32 @@ export default function SignupPage() {
     agreeTerms: false,
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validation
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords don't match!");
+      toast.error("Passwords don't match!");
       return;
     }
     if (!formData.agreeTerms) {
-      alert("Please agree to terms and conditions");
+      toast.error("Please agree to terms and conditions");
       return;
     }
-    alert("Account created successfully!");
-    router.push("/login");
+    
+    setIsLoading(true);
+    
+    try {
+      await authService.register(formData.name, formData.email, formData.password);
+      toast.success("Account created successfully! Please login.");
+      router.push("/login");
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || "Failed to create account. Please try again.";
+      toast.error(errorMessage);
+      console.error("Signup error:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -195,10 +212,11 @@ export default function SignupPage() {
               {/* Signup Button */}
               <button
                 type="submit"
-                className="w-full bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 text-white py-3 rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2 group"
+                disabled={isLoading}
+                className="w-full bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 text-white py-3 rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
-                Create Account
-                <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                {isLoading ? "Creating Account..." : "Create Account"}
+                {!isLoading && <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />}
               </button>
             </form>
 
